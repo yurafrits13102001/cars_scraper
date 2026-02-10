@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Query
 from playwright.async_api import async_playwright
-from playwright_stealth import stealth # Імпортуємо безпосередньо функцію
+import playwright_stealth 
 import os
 
 app = FastAPI()
@@ -14,20 +14,15 @@ async def root():
 async def search_copart(query: str = Query(..., description="Запит для Copart")):
     try:
         async with async_playwright() as p:
-            # 1. Запуск браузера
-            try:
-                browser = await p.chromium.launch(headless=True)
-            except Exception as launch_error:
-                return {"status": "error", "step": "browser_launch", "details": str(launch_error)}
-
-            # 2. Створення контексту та сторінки
+            # Запуск браузера
+            browser = await p.chromium.launch(headless=True)
             context = await browser.new_context(
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
             )
             page = await context.new_page()
             
-            # 3. Активація режиму "невидимості"
-            await stealth(page) 
+            # Використовуємо функцію stealth з модуля (виправляє помилку 'module' object is not callable)
+            await playwright_stealth.stealth(page)
             
             # 4. Формування URL та перехід
             url = f"https://www.copart.com/lotSearchResults?freeForm=true&searchTerm={query}"
