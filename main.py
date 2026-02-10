@@ -3,7 +3,7 @@ from playwright.async_api import async_playwright
 import os
 os.system("playwright install chromium")
 
-from playwright_stealth import stealth as stealth_async
+from playwright_stealth import stealth as stealth_async 
 
 app = FastAPI()
 
@@ -24,7 +24,7 @@ async def search_copart(query: str = Query(..., description="Запит для C
             page = await context.new_page()
             
             # АКТИВУЄМО STEALTH ТУТ (після створення page)
-            from playwright_stealth import stealth_async
+            from playwright_stealth import stealth as stealth_async 
             await stealth_async(page) 
             
             # 3. Формуємо URL та переходимо
