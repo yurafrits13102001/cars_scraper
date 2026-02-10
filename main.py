@@ -1,4 +1,5 @@
 import os
+os.system("playwright install chromium")
 from fastapi import FastAPI, Query
 from playwright.async_api import async_playwright
 
