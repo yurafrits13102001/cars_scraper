@@ -6,16 +6,8 @@ os.system("playwright install chromium")
 
 app = FastAPI()
 
-@app.get("/")
-async def root():
-    return {"message": "Copart Scraper is live!"}
-
 @app.get("/search")
 async def search_copart(query: str = Query(..., description="Запит для Copart")):
-    page = await context.new_page()
-            await stealth_async(page) # Цей рядок робить тебе "невидимим"
-            
-            url = f"https://www.copart.com/lotSearchResults?freeForm=true&searchTerm={query}"
     try:
         async with async_playwright() as p:
             # 1. Запуск браузера
@@ -24,16 +16,21 @@ async def search_copart(query: str = Query(..., description="Запит для C
             except Exception as launch_error:
                 return {"status": "error", "step": "browser_launch", "details": str(launch_error)}
 
+            # 2. Створення контексту та сторінки
             context = await browser.new_context(
                 user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
             )
             page = await context.new_page()
             
-            # 2. Формуємо URL
+            # АКТИВУЄМО STEALTH ТУТ (після створення page)
+            from playwright_stealth import stealth_async
+            await stealth_async(page) 
+            
+            # 3. Формуємо URL та переходимо
             url = f"https://www.copart.com/lotSearchResults?freeForm=true&searchTerm={query}"
             
             try:
-                # 3. Перехід на сайт (чекаємо до 60 сек)
+                # Чекаємо до 60 сек (на Render це важливо)
                 await page.goto(url, wait_until="domcontentloaded", timeout=60000)
                 
                 # 4. Перевірка на капчу/блокування
