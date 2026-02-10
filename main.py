@@ -12,6 +12,10 @@ async def root():
 
 @app.get("/search")
 async def search_copart(query: str = Query(..., description="Запит для Copart")):
+    page = await context.new_page()
+            await stealth_async(page) # Цей рядок робить тебе "невидимим"
+            
+            url = f"https://www.copart.com/lotSearchResults?freeForm=true&searchTerm={query}"
     try:
         async with async_playwright() as p:
             # 1. Запуск браузера
