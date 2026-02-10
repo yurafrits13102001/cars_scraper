@@ -25,20 +25,27 @@ async def search_copart(query: str = Query(..., description="Пошук, нап�
             )
             page = await context.new_page()
             
-            # Логіка пошуку
-            url = f"https://www.copart.com/lotSearchResults?freeForm=true&searchTerm={query}"
+          # ... (початок скрипта залишаємо таким самим)
+        
+        try:
+            # 1. Збільшуємо тайм-аут завантаження сторінки до 60 секунд
             await page.goto(url, wait_until="networkidle", timeout=60000)
             
-            # Чекаємо на селектор назв лотів
-            await page.wait_for_selector('a[data-aid="lot-description"]', timeout=15000)
+            # 2. Перевіряємо, чи не заблокували нас (шукаємо текст про перевірку браузера)
+            content = await page.content()
+            if "Cloudflare" in content or "Pardon Our Interruption" in content:
+                return {"status": "error", "step": "blocked", "details": "Сайт Copart заблокував запит (капча)"}
+
+            # 3. Чекаємо на селектор довше (збільшуємо з 15 до 30 секунд)
+            # Також додаємо перевірку на наявність тексту "No results found"
+            try:
+                await page.wait_for_selector('a[data-aid="lot-description"]', timeout=30000)
+            except:
+                if "No results found" in content:
+                    return {"status": "success", "total": 0, "lots": [], "message": "Нічого не знайдено"}
+                raise  # Якщо це не порожній пошук, то це справжній тайм-аут
             
-            lots = await page.eval_on_selector_all(
-                'a[data-aid="lot-description"]',
-                'elements => elements.map(el => ({ title: el.innerText, url: el.href }))'
-            )
-            
-            await browser.close()
-            return {"query": query, "total": len(lots), "lots": lots[:5]}
+            # ... (решта коду для збору даних)
 
     except Exception as e:
         return {"status": "error", "step": "general", "details": str(e)}
